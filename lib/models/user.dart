@@ -23,7 +23,8 @@ class User with UserUtils{
         this.email = email
         {
           print ("User is created");
-          _type = email != null ? LoginType.email : LoginType.phone;
+          _type = ((email != null) && (email.isNotEmpty)) ?
+          _type = LoginType.email : _type = LoginType.phone; // email != null ? LoginType.email : LoginType.phone;
         }
 //----------------другой конструктор для примера !!!!!!!!!!!!!!!--------
 //  User.__(String name) {
@@ -31,13 +32,21 @@ class User with UserUtils{
 //  }
 //----------------------------------------------------------------------
   factory User ({String name, String phone, String email}) {
-    if (name.isEmpty) throw Exception ("User name is empty");
-    if (phone.isEmpty || email.isEmpty) throw Exception ("phone or email is empty");
+//    if (name.isEmpty) throw Exception ("User name is empty");
+//    if (phone.isEmpty || email.isEmpty) throw Exception ("phone or email is empty");
+    (name == null) ? name = "" : name = name;
+    (phone == null) ? phone = "" : phone = phone;
+    (email == null) ? email = "" : email = email;
+    if (name.isEmpty) throw Exception("User name is empty");
+    if (name.indexOf(' ') == 0) throw Exception("Indicate first name and last name");
+    if (email.isEmpty && phone.isEmpty) throw Exception("Phone or Email is empty");
   return User._(
-    firstName: _getFirstName (name),
-    lastName: _getLastName (name),
-    phone: checkPhone (phone),
-    email: checkEmail (email));
+      firstName: _getFirstName(name),
+      lastName: _getLastName(name),
+      phone: ((phone != null) && (phone.isNotEmpty)) ? checkPhone(phone) : phone,
+      email: ((email != null) && (email.isNotEmpty)) ? checkEmail(email) : email);
+//    phone: checkPhone (phone),
+//    email: checkEmail (email));
   }
 //----------------------------------------------------------------------
   static String _getLastName (String userName) => userName.split (" ")[1];
@@ -68,9 +77,9 @@ class User with UserUtils{
     return email;
   }
 //----------------------------------------------------------------------
-  String get fullName {
-    return "$_firstName $_lastName";
- }
+//  String get fullName {
+//    return "$_firstName $_lastName";
+//  }
 //----------------------------------------------------------------------
   String get login {
   if (_type == LoginType.phone) return phone;

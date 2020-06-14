@@ -1,10 +1,17 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'package:FlutterGalleryApp/main.dart';
 import 'package:FlutterGalleryApp/res/res.dart';
 import 'package:FlutterGalleryApp/screens/feed_screen.dart';
 
+import 'package:connectivity/connectivity.dart';
+
 class Home extends StatefulWidget {
+  final Stream<ConnectivityResult> onConnectivityChanged;
+  Home(this.onConnectivityChanged);
+
   @override
   State<StatefulWidget> createState() => _HomeState();
 }
@@ -12,6 +19,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with TickerProviderStateMixin {
   int currentTab = 0;
   final PageStorageBucket bucket = PageStorageBucket();
+  StreamSubscription subscription;
 
   List<Widget> pages = [
     Feed(key: PageStorageKey('FeedPage')),
@@ -39,6 +47,30 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       inactiveColor: AppColors.manatee,
     ),
   ];
+
+  void initState() {
+    super.initState();
+    subscription = widget.onConnectivityChanged.listen((ConnectivityResult result) {
+      switch (result) {
+        case ConnectivityResult.wifi:
+          ConnectivityOverlay().removeOverlay(context);
+          break;
+        case ConnectivityResult.mobile:
+          ConnectivityOverlay().removeOverlay(context);
+          break;
+        case ConnectivityResult.none:
+          ConnectivityOverlay().showOverlay(context, Text('No internet connection'));
+          break;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    subscription.cancel();
+  }
+
 
   @override
   Widget build(BuildContext context) {

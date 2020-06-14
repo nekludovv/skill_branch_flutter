@@ -8,12 +8,12 @@ class UserAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-        borderRadius: BorderRadius.circular(50),
+        borderRadius: BorderRadius.circular(50), //BorderRadius.all(Radius.circular(50.0)
           child: CachedNetworkImage(
             imageUrl: avatarLink,
             width: 40,
             height: 40,
-            fit: BoxFit.fill,
+            fit: BoxFit.fill, //BoxFit.cover,
           ),
     );
   }

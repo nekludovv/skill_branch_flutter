@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 //import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:FlutterGalleryApp/res/res.dart';
 import 'package:FlutterGalleryApp/widgets/widgets.dart';
+import 'package:FlutterGalleryApp/screens/photo_screen.dart';
 
 const String kFlutterDash = 'https://flutter.dev/assets/404/dash_nest-c64796b59b65042a2b40fae5764c13b7477a592db79eaf04c86298dcb75b78ea.png';
 
@@ -20,7 +22,7 @@ class _FeedState extends State<Feed> {
       appBar: AppBar(
         centerTitle: true,
         elevation: 0.0,
-        title: Text('Photo', style: AppStyles.h1Black.copyWith(color: AppColors.black,),
+        title: Text('Photo', style: Theme.of(context).textTheme.headline5,
                ),
         backgroundColor: AppColors.white,
       ),
@@ -29,30 +31,58 @@ class _FeedState extends State<Feed> {
           itemBuilder: (BuildContext context, int index) {
           return Column (
             children: <Widget>[
-              _buildItem(),
-               Divider(
-                thickness: 2,
-                color: AppColors.mercury,
+              GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/fullScreenImage',
+                      arguments: FullScreenImageArguments(
+                          photo: kFlutterDash,
+                          altDescription: 'This is text about pucture',
+                          userName: 'kaparray',
+                          name: 'Kirill Adeshchenko',
+                          userPhoto: 'https://skill-branch.ru/img/speakers/Adechenko.jpg',
+                          heroTag: 'photo_$index',
+                          settings: RouteSettings(arguments: kFlutterDash)),
+                    );
+ /*                   Navigator.push(context, MaterialPageRoute(builder: (context) =>
+                      FullScreenImage(
+                      name: 'Kirill Adechenko',
+                      userName: 'kaparray',
+                      userPhoto: 'https://skill-branch.ru/img/speakers/Adechenko.jpg',
+                      altDescription: 'This is text about pucture',
+                      photo: kFlutterDash,
+                      heroTag: 'photo_$index',
+                      ),
+                  ),
+                  );
+ */               },
+                child:
+                  _buildItem(index: index), // Photo(photoLink: kFlutterDash),
               ),
+              Divider(thickness: 2,color: AppColors.mercury,),
             ],);
           }),
     );
   }
 
-  Widget _buildItem() {
+  Widget _buildItem({int index}) {
         return Column (
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Photo(photoLink: kFlutterDash),
+            Hero(
+              tag: 'photo_$index',
+              child:Photo(photoLink: kFlutterDash),
+            ),
             _buildPhotoMeta(),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child:
-                Text ('This is text about picture',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppStyles.h3.copyWith(color: AppColors.black),
-                ),
+               Text ('This is text about picture',
+                 maxLines: 3,
+                 overflow: TextOverflow.ellipsis,
+                 style: Theme.of(context).textTheme.headline6,
+               ),
             )
           ],
        );
@@ -73,8 +103,8 @@ class _FeedState extends State<Feed> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Text ("Kirill Adechenko", style: AppStyles.h2Black),
-                  Text ("@kaparray", style: AppStyles.h5Black.copyWith(color: AppColors.manatee)),
+                  Text ("Kirill Adechenko", style: Theme.of(context).textTheme.headline6),
+                  Text ("@kaparray", style: Theme.of(context).textTheme.headline6),
               ],
               ),
             ],
@@ -84,6 +114,5 @@ class _FeedState extends State<Feed> {
         ),
       );
   }
-
 
 } // END class _FeedState

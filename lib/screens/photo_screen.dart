@@ -1,19 +1,50 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 import 'package:FlutterGalleryApp/res/res.dart';
 import 'package:FlutterGalleryApp/widgets/widgets.dart';
+
+import 'package:gallery_saver/gallery_saver.dart';
 
 const String kFlutterDush =
     'https://flutter.dev/assets/404/dash_nest-c64796b59b65042a2b40fae5764c13b7477a592db79eaf04c86298dcb75b78ea.png';
 
-class FullScreenImage extends StatefulWidget {
-  FullScreenImage({this.altDescription, this.userName, this.name, this.photo, this.userPhoto, this.heroTag,
-    Key key}) : super(key: key);
-
+class FullScreenImageArguments {
+  FullScreenImageArguments({
+    this.key,
+    this.photo,
+    this.altDescription,
+    this.userName,
+    this.name,
+    this.userPhoto,
+    this.heroTag,
+    this.settings,
+  });
+  final Key key;
+  final String photo;
   final String altDescription;
   final String userName;
   final String name;
+  final String userPhoto;
+  final String heroTag;
+  final RouteSettings settings;
+}
+
+class FullScreenImage extends StatefulWidget {
+  FullScreenImage(
+      {this.photo ='',
+      this.altDescription ='',
+      this.userName ='',
+      this.name ='',
+      this.userPhoto ='',
+      this.heroTag,
+      Key key})
+      : super(key: key);
+
   final String photo;
+  final String altDescription;
+  final String userName;
+  final String name;
   final String userPhoto;
   final String heroTag;
 
@@ -28,8 +59,7 @@ class _PhotoScreenState extends State<FullScreenImage> with TickerProviderStateM
   void initState() {
     super.initState();
     _animationController = AnimationController(
-        duration: const Duration(milliseconds: 1500), vsync: this
-    );
+        duration: const Duration(milliseconds: 1500), vsync: this);
     _playAnimation();
   }
 
@@ -49,38 +79,30 @@ class _PhotoScreenState extends State<FullScreenImage> with TickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 0.0,
-        title: Text(
-          'Photo',
-          style: AppStyles.h1Black.copyWith(
-            color: AppColors.black,
-          ),
-        ),
-        backgroundColor: AppColors.white,
-        leading: IconButton(
-          icon: Icon(CupertinoIcons.back, color: AppColors.manatee),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: Column(
+      appBar: _buildAppBar(),
+      body:SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Hero(
             tag: widget.heroTag,
-            child:Photo(
-            photoLink: (widget.photo != null && widget.photo.isNotEmpty) ? widget.photo : kFlutterDush,
+            child: Photo(
+              photoLink: (widget.photo != null && widget.photo.isNotEmpty)
+                  ? widget.photo
+                  : kFlutterDush,
+            ),
           ),
-          ),
+          const SizedBox(height: 11),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             child: Text(
               (widget.altDescription != null) ? widget.altDescription : '',
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: AppStyles.h3,
+              style: Theme.of(context).textTheme.headline6,
             ),
           ),
+          const SizedBox(height: 9),
 //        _buildPhotoMeta(widget.name, widget.userName),
           PhotoMetaUser(
             controller: _animationController,
@@ -88,12 +110,47 @@ class _PhotoScreenState extends State<FullScreenImage> with TickerProviderStateM
             nikName: widget.userName,
             userPhoto: widget.userPhoto,
           ),
+          const SizedBox(height: 17),
           _buildLikeAndButton(),
         ],
       ),
+    ),
     );
   }
 
+  AppBar _buildAppBar() {
+    return AppBar(
+      elevation: 0,
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(
+            Icons.more_vert,
+            color: AppColors.grayChateau,
+          ),
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              builder: (BuildContext context) => ClaimBottomSheet(
+                    onClaims: (int value) {
+                      Navigator.pop(context);
+                    },
+                  ),
+            );
+          },
+        ),
+      ],
+      leading: IconButton(
+        icon: Icon(
+          CupertinoIcons.back,
+          color: AppColors.grayChateau,
+        ),
+        onPressed: () => Navigator.pop(context),
+      ),
+      backgroundColor: AppColors.white,
+      centerTitle: true,
+      title: Text('Photo', style: Theme.of(context).textTheme.headline5),
+    );
+  }
 /*  Widget _buildPhotoMeta(String name, String nikName) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -139,9 +196,13 @@ class _PhotoScreenState extends State<FullScreenImage> with TickerProviderStateM
           child: Button(
             colour: AppColors.dodgerBlue,
             text: 'Save',
-            onPress: () {},
+            onPress: () {
+              _savePicture (context);
+            },
           ),
         ),
+
+        const SizedBox(width: 12),
         Expanded(
           child: Button(
             colour: AppColors.dodgerBlue,
@@ -153,7 +214,37 @@ class _PhotoScreenState extends State<FullScreenImage> with TickerProviderStateM
     );
   }
 
+  void _savePicture (BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Downloading photos"),
+          content: Text('Are you sure you want to upload a photo?'),
+          actions: <Widget>[
+            FlatButton(
+              child: Text("Download"),
+              onPressed: () {
+                GallerySaver.saveImage(widget.photo).then((bool success) {
+                  print ('Saving photo ${widget.photo}');
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            FlatButton(
+              child: Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 } // _PhotoScreenState
+
 
 class Button extends StatelessWidget {
   final Color colour;
@@ -172,15 +263,16 @@ class Button extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Text(
               text,
-              style: AppStyles.h5Black.copyWith(
-                color: AppColors.white,
-                fontWeight: FontWeight.w500,
-              ),
+              style: Theme.of(context).textTheme.headline6.copyWith(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
           ),
         ),
         margin: EdgeInsets.all(10.0),
-        decoration: BoxDecoration(color: colour, borderRadius: BorderRadius.circular(10.0)),
+        decoration: BoxDecoration(
+            color: colour, borderRadius: BorderRadius.circular(10.0)),
       ),
     );
   }
@@ -193,11 +285,12 @@ class PhotoMetaUser extends StatelessWidget {
   final String name;
   final String nikName;
   final String userPhoto;
-  PhotoMetaUser({this.controller, this.name, this.nikName, this.userPhoto, Key key})
+  PhotoMetaUser(
+      {this.controller, this.name, this.nikName, this.userPhoto, Key key})
       : opacityUserAvatar = Tween<double>(begin: 0, end: 1).animate(
           CurvedAnimation(
             parent: controller,
-            curve: Interval(0.0, 0.5,curve: Curves.ease),
+            curve: Interval(0.0, 0.5, curve: Curves.ease),
           ),
         ),
         opacityUserName = Tween<double>(begin: 0, end: 1).animate(
@@ -207,7 +300,6 @@ class PhotoMetaUser extends StatelessWidget {
           ),
         ),
         super(key: key);
-
 
   Widget _buildPhotoMeta(BuildContext context, Widget child) {
     return Padding(
@@ -219,7 +311,9 @@ class PhotoMetaUser extends StatelessWidget {
             children: <Widget>[
               Opacity(
                 opacity: opacityUserAvatar.value,
-                child: UserAvatar((userPhoto != null && userPhoto.isNotEmpty) ? userPhoto : kFlutterDush),
+                child: UserAvatar((userPhoto != null && userPhoto.isNotEmpty)
+                    ? userPhoto
+                    : kFlutterDush),
               ),
               SizedBox(width: 6),
               Opacity(
@@ -230,13 +324,13 @@ class PhotoMetaUser extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       (name != null) ? name : '',
-                      style: AppStyles.h1Black,
+                      style: Theme.of(context).textTheme.headline6,
                     ),
                     Text(
-                      (nikName != null) ? '@${nikName}' : '',
-                      style: AppStyles.h5Black.copyWith(
-                        color: AppColors.manatee,
-                      ),
+                      (nikName != null) ? '@$nikName' : '',
+                      style: Theme.of(context).textTheme.headline6.copyWith(
+                            color: AppColors.manatee,
+                          ),
                     ),
                   ],
                 ),
